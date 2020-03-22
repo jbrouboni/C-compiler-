@@ -4,7 +4,7 @@ axiom
   ;
 
 prog 
-  : decl*
+  : decl* 
   ;
 
 decl
@@ -97,6 +97,7 @@ PLUS : '+' ;
 DIV : '/' ;
 MINUS : '-' ;
 EQ : '=' ;
+VIRG : ',' ;
 
 NAME: [_a-zA-Z][_a-zA-Z0-9]* ;
 CONST : [0-9]+ ;
