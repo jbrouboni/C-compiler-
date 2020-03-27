@@ -1,6 +1,7 @@
 int main()
-  {
-    int a;
-    a=17;
-    return a;
-    }
+{
+  int a=17;
+  int c=18;
+  return a*c;
+}
+
