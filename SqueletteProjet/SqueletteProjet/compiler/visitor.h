@@ -19,12 +19,17 @@ private:
   std::map<std::string,int>  map;
 
 public:
+  void printErrorMsg(std::string msg){
+    std::cout<<"\033[31m"<<msg<<"\033[0m"<<std::endl;
+  }
+
   virtual antlrcpp::Any visitAxiom(ifccParser::AxiomContext *ctx) override {
 	  return visitChildren(ctx);
 	}
 
   virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx) override {
 		std::cout<<".text\n"<<".globl	main"<<std::endl;
+    bool res = true;
 		return visit(ctx->decl().at(0));                // A modifier: visiter tous les elements dans le vecteur
   }
 
@@ -48,7 +53,8 @@ public:
       if(map.count(name->getText())==0)
         map.insert(std::pair<std::string,int>(name->getText(),size_type));
       else{
-        std::cout<<"redeclaration of \'"<<name->getText()<<"\' with no linkage"<<std::endl;
+        std::string msg = "redeclaration of \'"+name->getText()+"\' with no linkage";
+        printErrorMsg(msg);
       }
     }
     return visitChildren(ctx);
@@ -73,7 +79,8 @@ public:
        }
       map.insert(std::pair<std::string,int>(ctx->NAME()->getText(),cpt));
     }else{
-      std::cout<<"redeclaration of  \'"<<name<<"\' with no linkage"<<std::endl;
+      std::string msg = "redeclaration of \'"+name+"\' with no linkage";
+      printErrorMsg(msg);
     }            
     return 0;
   }
@@ -113,9 +120,11 @@ public:
       }
       std::cout<<"  movl  $"<<value<<", "<<map[name]<<"(%rbp)"<<std::endl;
     }else if(map.count(name)==0){
-      std::cout<<"\'"<<name<<"\' undeclared (first use in this function)"<<std::endl;
+      std::string msg = "\'"+name+"\' undeclared (first use in this function)";
+      printErrorMsg(msg);
     }else{
-      std::cout<<"redeclaration of  \'"<<name<<"\' with no linkage"<<std::endl;
+      std::string msg = "redeclaration of \'"+name+"\' with no linkage";
+      printErrorMsg(msg);
     }
     return visitChildren(ctx);
   }
@@ -132,8 +141,11 @@ public:
     std::string name = ctx->NAME()->getText();
     if(map.count(name)==1){
       return (std::string)(std::to_string(map[name])+"(%rbp)");
+    }else{
+      std::string msg = "\'"+name+"\' undeclared (first use in this function)";
+      printErrorMsg(msg);
+      return "error"; 
     }
-    return "error";    // A modifier: traitement d'exception
   }
 
   virtual antlrcpp::Any visitParenthese(ifccParser::ParentheseContext *ctx) override {
@@ -155,10 +167,10 @@ public:
                <<" movl  "<<	expr1<<", %eax\n"
                <<"  imull	%edx, %eax"<<std::endl;
     }else if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())){
-      std::cout<<"  movl"<<expr0<<", %eax\n"
+      std::cout<<"  movl  "<<expr0<<", %eax\n"
       " imull	$"<<expr1<<", %eax"<<std::endl;
     }else if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
-      std::cout<<"movl"<<expr1<<", %eax\n"
+      std::cout<<"movl  "<<expr1<<", %eax\n"
       " imull	$"<<expr0<<", %eax"<<std::endl;
     }else{
       return std::to_string((int)stoi(expr0)*(int)stoi(expr1));
@@ -172,14 +184,14 @@ public:
     std::string suffixeAdr = "(%rbp)";
     
     if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())&&expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
-      std::cout<<"  movl "<<	expr0<<", %edx\n"
-               <<" movl "<<	expr1<<", %eax\n"
+      std::cout<<"  movl  "<<	expr0<<", %edx\n"
+               <<" movl  "<<	expr1<<", %eax\n"
                <<"  ctld\n  idivl	%edx, %eax"<<std::endl;
     }else if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())){
-      std::cout<<"  movl "<<expr0<<", %eax\n"
+      std::cout<<"  movl  "<<expr0<<", %eax\n"
       " idivl	$"<<expr1<<", %eax"<<std::endl;
     }else if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
-      std::cout<<"movl "<<expr1<<", %eax\n"
+      std::cout<<"movl  "<<expr1<<", %eax\n"
       " idivl	$"<<expr0<<", %eax"<<std::endl;
     }else{
       return std::to_string((int)stoi(expr0)/(int)stoi(expr1));
@@ -193,14 +205,14 @@ public:
     std::string suffixeAdr = "(%rbp)";
 
     if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())&&expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
-      std::cout<<"movl "<<	expr0<<", %edx\n"
+      std::cout<<"  movl  "<<	expr0<<", %edx\n"
         <<" movl  "<<	expr1<<", %eax\n"
         <<"  addl	%edx, %eax"<<std::endl;
     }else if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())){
-      std::cout<<"  movl "<<expr0<<", %eax\n"
+      std::cout<<"  movl  "<<expr0<<", %eax\n"
       " addl	$"<<expr1<<", %eax"<<std::endl;
     }else if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
-      std::cout<<"movl "<<expr1<<", %eax\n"
+      std::cout<<"movl  "<<expr1<<", %eax\n"
       " addl	$"<<expr0<<", %eax"<<std::endl;
     }else{
       return std::to_string((int)stoi(expr0)+(int)stoi(expr1));
@@ -214,10 +226,10 @@ public:
     std::string suffixeAdr = "(%rbp)";
 
     if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())&&expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
-      std::cout<<"movl "<<	expr0<<", %eax\n"
+      std::cout<<"  movl  "<<	expr0<<", %eax\n"
         <<"  subl  "<<	expr1<<", %eax"<<std::endl;
     }else if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())){
-      std::cout<<"movl "<<expr0<<", %eax\n"
+      std::cout<<"movl  "<<expr0<<", %eax\n"
       " subl	$"<<expr1<<", %eax"<<std::endl;
     }else if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
       std::cout<<"movl  $"<<expr0<<", %eax\n"
@@ -229,6 +241,13 @@ public:
   }
 
   virtual antlrcpp::Any visitReturn_stmt(ifccParser::Return_stmtContext *ctx) override {
+    std::map<std::string,int>::iterator iter;
+    for(iter=map.begin();iter!=map.end();iter++){
+      if(iter->second>0){
+        std::string msg = "unused variable \'"+iter->first+"\'";
+        printErrorMsg(msg);           // error ou warning?
+      }
+    }
     std::string value = visit(ctx->expr());
     std::string suffixeAdr = "(%rbp)";
     if(value=="%eax"){
@@ -238,7 +257,7 @@ public:
     }else{
       std::cout << " movl "<<value<<", %eax\n"<<" popq	%rbp\n"<<" ret"<<std::endl;
     }
-    return 0;
+    return true;
   }
 };
 
