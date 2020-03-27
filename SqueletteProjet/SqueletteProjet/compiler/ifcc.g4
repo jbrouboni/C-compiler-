@@ -4,7 +4,7 @@ axiom
   ;
 
 prog 
-  : decl* 
+  : decl*
   ;
 
 decl
@@ -17,9 +17,9 @@ func_decl
  ;
  
 var_decl
- : type NAME (EQ expr)? SEMICOLON
+ : type NAME (VIRG NAME)* SEMICOLON  # variable_declaration
+ | type NAME EQ expr SEMICOLON # variable_affectation
  ;
-
 
 type
  : 'int'
@@ -64,21 +64,24 @@ args
   ;
 
 expr 
-  : expr op expr
-  | OPEN_PAR expr CLOSE_PAR
-  | NOMBRE
-  | NAME
+  : expr STAR expr                                     #star
+  |expr DIV expr                                     #div
+  |expr PLUS expr                                     #plus
+  |expr MINUS expr                                     #minus
+  | OPEN_PAR expr CLOSE_PAR     #parenthese
+  | NOMBRE                                            #nombre
+  | NAME                                                   #name
   ;
 
-op
-  : PLUS
-  | MINUS
-  | STAR
-  | DIV
-  ;
+// op
+//   : PLUS
+//   | MINUS
+//   | STAR
+//   | DIV
+//   ;
 
 return_stmt
-  : RETURN (CONST|NAME) SEMICOLON
+  : RETURN expr SEMICOLON // A remarquer
   ;
 
 // Syntaxe C
@@ -97,8 +100,8 @@ PLUS : '+' ;
 DIV : '/' ;
 MINUS : '-' ;
 EQ : '=' ;
-VIRG : ',' ;
+VIRG:',';
 
 NAME: [_a-zA-Z][_a-zA-Z0-9]* ;
-CONST : [0-9]+ ;
+//CONST : [0-9]+ ;                  A enlever, meme chose que NOMBRE
 WS: [ \n\t\r]+ -> channel(HIDDEN);
