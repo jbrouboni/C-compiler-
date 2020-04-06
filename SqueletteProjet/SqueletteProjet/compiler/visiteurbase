@@ -1,0 +1,380 @@
+
+// Generated from ifcc.g4 by ANTLR 4.7.2
+
+#pragma once
+
+#include <string>
+#include <map>
+#include "antlr4-runtime.h"
+#include "antlr4-generated/ifccBaseVisitor.h"
+
+/**
+* This class provides an empty implementation of ifccVisitor, which can be
+* extended to create a visitor which only needs to handle a subset of the available methods.
+*/
+
+class  Visitor : public ifccBaseVisitor {
+private:
+  int cpt = 0;
+  int tmp = 0;
+  std::map<std::string,int>  map;
+  
+public:
+  void printErrorMsg(std::string msg){
+    std::cout<<"\033[31m"<<msg<<"\033[0m"<<std::endl;
+  }
+  
+  virtual antlrcpp::Any visitAxiom(ifccParser::AxiomContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx) override {
+    std::cout<<".text\n"<<".globl	main"<<std::endl;
+    bool res = true;
+    return visit(ctx->decl().at(0));                // A modifier: visiter tous les elements dans le vecteur
+  }
+  
+  virtual antlrcpp::Any visitDecl(ifccParser::DeclContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitFunc_decl(ifccParser::Func_declContext *ctx) override {
+    std::cout<<ctx->NAME()->getText()<<":\n"
+    " pushq	%rbp\n"
+    " movq	%rsp, %rbp"<<std::endl;
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitVariable_declaration(ifccParser::Variable_declarationContext *ctx) override {
+    int size_type = 0;
+    if(ctx->type()->getText()=="int"){
+      size_type=4;
+    }
+    for(auto name:ctx->NAME()){
+      if(map.count(name->getText())==0)
+        map.insert(std::pair<std::string,int>(name->getText(),size_type));
+      else{
+        std::string msg = "redeclaration of \'"+name->getText()+"\' with no linkage";
+        printErrorMsg(msg);
+      }
+    }
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitVariable_affectation(ifccParser::Variable_affectationContext *ctx) override {
+    std::string name = ctx->NAME()->getText();
+    std::string type = ctx->type()->getText();
+    std::string value = visit(ctx->expr());
+    if(map.count(name)==0){
+      if(type=="int"){
+        cpt-=4;
+      }
+      std::string suffixeAdr = "(%rbp)";
+      if(value=="%eax"){
+        std::cout<<" movl	 %eax"<< ","<<cpt<<"(%rbp)"<<std::endl;
+      }else if(value.rfind(suffixeAdr) != (value.length() - suffixeAdr.length())){
+        std::cout <<  " movl $"<< value<< ", "<<cpt<<"(%rbp)"<<std::endl; 
+      }else{
+        std::cout <<  " movl	"<< value << ", %eax"<<std::endl;
+        std::cout <<  " movl	"<< "%eax" << ", "<<cpt<<"(%rbp)"<<std::endl;
+      }
+      map.insert(std::pair<std::string,int>(ctx->NAME()->getText(),cpt));
+    }else{
+      std::string msg = "redeclaration of \'"+name+"\' with no linkage";
+      printErrorMsg(msg);
+    }            
+    return 0;
+  }
+  
+  virtual antlrcpp::Any visitType(ifccParser::TypeContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitParam_list(ifccParser::Param_listContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitParam(ifccParser::ParamContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitBloc(ifccParser::BlocContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitStmt_list(ifccParser::Stmt_listContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitStmt(ifccParser::StmtContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitAff_stmt(ifccParser::Aff_stmtContext *ctx) override {
+    std::string name = ctx->NAME()->getText();
+    std::string value = visit(ctx->expr());
+    if(map.count(name)==1){
+      int val = map[name];
+      if(val>0){
+        cpt-=val;
+        map[name] = cpt;
+      }
+      std::string suffixeAdr = "(%rbp)";
+      if(value=="%eax"){
+        std::cout<<" movl	 %eax"<< ","<<cpt<<"(%rbp)"<<std::endl;
+      }else if(value.rfind(suffixeAdr) != (value.length() - suffixeAdr.length())){
+        std::cout<< " movl	 $"<< value <<", "<<cpt<<"(%rbp)"<<std::endl;
+      }else{
+        std::cout <<  " movl	"<< value << ", "<<cpt<<"%eax"<<std::endl;
+        std::cout <<  " movl	"<< "%eax" << ", "<<cpt<<"(%rbp)"<<std::endl;
+      }
+      
+    }else if(map.count(name)==0){
+      std::string msg = "\'"+name+"\' undeclared (first use in this function)";
+      printErrorMsg(msg);
+    }else{
+      std::string msg = "redeclaration of \'"+name+"\' with no linkage";
+      printErrorMsg(msg);
+    }
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitExpr_stmt(ifccParser::Expr_stmtContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitArgs(ifccParser::ArgsContext *ctx) override {
+    return visitChildren(ctx);
+  }
+  
+  virtual antlrcpp::Any visitName(ifccParser::NameContext *ctx) override {
+    std::string name = ctx->NAME()->getText();
+    if(map.count(name)==1){
+      return (std::string)(std::to_string(map[name])+"(%rbp)");
+    }else{
+      std::string msg = "\'"+name+"\' undeclared (first use in this function)";
+      printErrorMsg(msg);
+      return "error"; 
+    }
+  }
+  
+  virtual antlrcpp::Any visitParenthese(ifccParser::ParentheseContext *ctx) override {
+    return visit(ctx->expr());
+  }
+  
+  virtual antlrcpp::Any visitNombre(ifccParser::NombreContext *ctx) override {
+    std::string value = ctx->NOMBRE()->getText();
+    return value;
+  }
+  
+  virtual antlrcpp::Any visitStar(ifccParser::StarContext *ctx) override {
+    std::string expr0 = visit(ctx->expr(0));
+    std::string expr1 = visit(ctx->expr(1));
+    std::string suffixeAdr = "(%rbp)";
+    std::string varTmp = std::to_string(tmp) + suffixeAdr;
+    
+    if(expr0 != std::to_string(tmp) + suffixeAdr){       // niveau plus bas
+      cpt -= 4;
+      tmp = cpt;
+      varTmp = std::to_string(tmp) + suffixeAdr;
+      
+      if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())&&expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+        std::cout << " movl  "<<	expr0 << ", " << "%eax" << "\n"
+                  <<" movl " << expr1 << ", " << "%edx" << "\n"
+                  <<" imull  %edx" << std::endl;
+        std::cout << " movl  "<<"%eax"	<< ", " << varTmp << std::endl;
+        
+      }else if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())){
+        std::cout<<" movl  "<<expr0<< ", " <<"%eax"   << "\n"
+                 <<" movl $" << expr1 << ", " << "%edx" << "\n"
+                 <<" imull	%edx"<< std::endl;
+        std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n"
+        ;
+      }else if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+        std::cout<<" movl  $"<<expr0<< ", " <<"%eax"   << "\n"
+                 <<" movl " << expr1 << ", " << "%edx" << "\n"
+                 <<" imull	%edx"<< std::endl;
+        std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n"
+        ;
+      }else{
+        std::cout << " movl   $" << std::to_string((int)stoi(expr0)*(int)stoi(expr1)) << ", " << varTmp << std::endl;
+      }
+    }else{
+      if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+        std::cout<<" movl  "<<expr0<< ", " <<"%eax"   << "\n"
+                 <<" movl " << expr1 << ", " << "%edx" << "\n"
+                 <<" imull	%edx"<< std::endl;
+      }else{
+        std::cout<<" movl  "<<expr0<< ", " <<"%eax"   << "\n"
+                 <<" movl $" << expr1 << ", " << "%edx" << "\n"
+                 <<" imull	%edx"<< std::endl;
+      }
+    }
+    return varTmp;
+  }
+  
+  virtual antlrcpp::Any visitDiv(ifccParser::DivContext *ctx) override {
+    std::string expr0 = visit(ctx->expr(0));
+    std::string expr1 = visit(ctx->expr(1));
+    std::string suffixeAdr = "(%rbp)";
+    std::string varTmp = std::to_string(tmp) + suffixeAdr;
+    
+    if(expr0 != std::to_string(tmp) + suffixeAdr){       // niveau plus bas
+      cpt -= 4;
+      tmp = cpt;
+      varTmp = std::to_string(tmp) + suffixeAdr;
+      
+      if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())&&expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+        std::cout << " movl  "<<	expr0 << ", " << "%eax" << "\n"
+                  <<" idivl  "<<	expr1 << std::endl;
+        std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n" 
+        ;
+        
+      }else if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())){
+        std::cout<<" movl  "<<expr0<< ", " <<"%eax"   << "\n"
+        " idivl	$" << "%eax"<< std::endl;
+        std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n"
+        ;
+      }else if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+        std::cout<<" movl $"<<expr0<<  ", " << "%eax"  << "\n"
+        " idivl	"<< "%eax"<< std::endl;
+        std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n"
+        ;
+      }else{
+        std::cout << " movl   $" << std::to_string((int)stoi(expr0)/(int)stoi(expr1)) << ", " << varTmp << std::endl;
+      }
+    }else{
+      if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+        std::cout << " movl  " << expr0 << ", " << "%eax"  << std::endl;
+        std::cout << " idivl  "<< "%eax"<< "\n"
+        ;
+      }else{
+        std::cout << " movl  " << expr0<< ", " << "%eax"  << std::endl;
+        std::cout << " idivl $"<< "%eax"<< "\n"
+        ;
+      }
+    }
+    return varTmp;
+  }
+    
+    virtual antlrcpp::Any visitPlus(ifccParser::PlusContext *ctx) override {
+      std::string expr0 = visit(ctx->expr(0));
+      std::string expr1 = visit(ctx->expr(1));
+      std::string suffixeAdr = "(%rbp)";
+      std::string varTmp = std::to_string(tmp) + suffixeAdr;
+      
+      if(expr0 != std::to_string(tmp) + suffixeAdr){       // niveau plus bas
+        cpt -= 4;
+        tmp = cpt;
+        varTmp = std::to_string(tmp) + suffixeAdr;
+        
+        if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())&&expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+          std::cout << " movl  "<<	expr0 << ", " << "%eax" << "\n"
+                    <<" addl  "<<	expr1 << ", " << "%eax" << std::endl;
+          std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n" 
+          ;
+          
+        }else if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())){
+          std::cout<<" movl  "<<expr0<< ", " <<"%eax"   << "\n"
+          " addl	$" << expr1 <<  ", " << "%eax"   << std::endl;
+          std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n"
+          ;
+        }else if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+          std::cout<<" movl  "<<expr1<<  ", " << "%eax"  << "\n"
+          " addl	$"<< expr0 <<  ", " << "%eax"   << std::endl;
+          std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n"
+          ;
+        }else{
+          std::cout << " movl   $" << std::to_string((int)stoi(expr0)+(int)stoi(expr1)) << ", " << varTmp << std::endl;
+        }
+      }else{
+        if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+          std::cout << " movl  " << expr1 << ", " << "%eax"  << std::endl;
+          std::cout << " addl  "<<"%eax"	<< ", " << varTmp << "\n"
+          ;
+        }else{
+          std::cout << " movl  $" << expr1 << ", " << "%eax"  << std::endl;
+          std::cout << " addl  "<<"%eax"	<< ", " << varTmp << "\n"
+          ;
+        }
+      }
+      
+      return varTmp;
+      
+      // map<nomVar,adrVar>
+      
+      // d=a+3+b             mov -12(%rbp)  &b 
+      
+      // a+3             b        add map[b] -12(%rbp) 
+      
+      // a       3                   mov  map[a]  -12(%rbp)    add  $3 -12(%rbp)  
+  
+    }
+    
+    virtual antlrcpp::Any visitMinus(ifccParser::MinusContext *ctx) override {
+      std::string expr0 = visit(ctx->expr(0));
+      std::string expr1 = visit(ctx->expr(1));
+      std::string suffixeAdr = "(%rbp)";
+      std::string varTmp = std::to_string(tmp) + suffixeAdr;
+      
+      if(expr0 != std::to_string(tmp) + suffixeAdr){       // niveau plus bas
+        cpt -= 4;
+        tmp = cpt;
+        varTmp = std::to_string(tmp) + suffixeAdr;
+        
+        if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())&&expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+          std::cout << " movl  "<<	expr0 << ", " << "%eax" << "\n"
+                    <<" subl  "<<	expr1 << ", " << "%eax" << std::endl;
+          std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n" 
+          ;
+          
+        }else if(expr0.rfind(suffixeAdr) == (expr0.length() - suffixeAdr.length())){
+          std::cout<<" movl  "<<expr0<< ", " <<"%eax"   << "\n"
+          " addl	$" << expr1 <<  ", " << "%eax"   << std::endl;
+          std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n"
+          ;
+        }else if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+          std::cout<<" movl  "<<expr1<<  ", " << "%eax"  << "\n"
+          " subl	$"<< expr0 <<  ", " << "%eax"   << std::endl;
+          std::cout << " movl  "<<"%eax"	<< ", " << varTmp << "\n"
+          ;
+        }else{
+          std::cout << " movl   $" << std::to_string((int)stoi(expr0)-(int)stoi(expr1)) << ", " << varTmp << std::endl;
+        }
+      }else{
+        if(expr1.rfind(suffixeAdr) == (expr1.length() - suffixeAdr.length())){
+          std::cout << " movl  " << expr1 << ", " << "%eax"  << std::endl;
+          std::cout << " subl  "<<"%eax"	<< ", " << varTmp << "\n"
+          ;
+        }else{
+          std::cout << " movl  $" << expr1 << ", " << "%eax"  << std::endl;
+          std::cout << " subl  "<<"%eax"	<< ", " << varTmp << "\n"
+          ;
+        }
+      }
+      return varTmp;
+    }
+    
+    virtual antlrcpp::Any visitReturn_stmt(ifccParser::Return_stmtContext *ctx) override {
+      std::map<std::string,int>::iterator iter;
+      for(iter=map.begin();iter!=map.end();iter++){
+        if(iter->second>0){
+          std::string msg = "unused variable \'"+iter->first+"\'";
+          printErrorMsg(msg);           // error ou warning?
+        }
+        //std::cout<<"nom variable: "<<iter->first<<", adresse: "<<iter->second<<std::endl;
+      }
+      std::string value = visit(ctx->expr());
+      std::string suffixeAdr = "(%rbp)";
+      if(value=="%eax"){
+        std::cout<<" popq	%rbp\n"<<" ret"<<std::endl;
+      }else if(value.rfind(suffixeAdr) != (value.length() - suffixeAdr.length())){
+        std::cout << " movl $"<<value<<", %eax\n"<<" popq	%rbp\n"<<" ret"<<std::endl;
+      }else{
+        std::cout << " movl "<<value<<", %eax\n"<<" popq	%rbp\n"<<" ret"<<std::endl;
+      }
+      return true;
+    }
+  };
+  
+  
