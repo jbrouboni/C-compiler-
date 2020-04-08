@@ -259,5 +259,38 @@ public:
     }
     return true;
   }
+
+
+  // Visiteur rajouté par Joseph 
+
+  virtual antlrcpp::Any visitTab_declaration(ifccParser::Tab_declarationContext *ctx) override {
+    return visit(ctx->expr());
+  }
+
+  virtual antlrcpp::Any visitTab_affectation(ifccParser::Tab_affectationContext *ctx) override {
+    return visit(ctx->expr());
+  }
+
+  virtual antlrcpp::Any visitIf_stmt(ifccParser::If_stmtContext *ctx) override {
+    return visit(ctx->expr());
+  }
+
+  virtual antlrcpp::Any visitWhile_stmt(ifccParser::While_stmtContext *ctx) override {
+    return visit(ctx->expr());
+  }
+
+  virtual antlrcpp::Any visitPutchar_stmt(ifccParser::Putchar_stmtContext *ctx) override {
+    return visit(ctx->expr());
+  }
+
+  virtual antlrcpp::Any visitGetchar(ifccParser::GetcharContext *ctx) override {
+    return visit(ctx->expr());
+  }
+
+  virtual antlrcpp::Any visitAffTab_stmt(ifccParser::AffTab_stmtContext *ctx) override {
+    return visit(ctx->expr());
+  }
+
+  
 };
 
