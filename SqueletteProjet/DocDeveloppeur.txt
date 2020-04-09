@@ -1,6 +1,6 @@
 Organisation des dossiers
 
-Notre projet se compose de deux importants dossier. Le premier contient le code de notre compilateur
+Notre projet se compose de deux importants dossiers. Le premier contient le code de notre compilateur
 et le deuxième est un dossier contenant les différents jeux de tests et le code permettant de lancer
 ces derniers.
 
@@ -24,10 +24,10 @@ la commande suivante :
 python3 pld-test.py ./dossierFichiersATester
 
 
-Script pour compiler et lancer les tests sur les machines du depart
+Script pour compiler et lancer les tests sur les machines du département
 
-Afin de faciliter la compilation et l'exécution des jeux de tests, nous avons mis à dispotion un 
-script permettant de compilet de lancer le jeu de tests final. Ce script est situé à la racine du 
+Afin de faciliter la compilation et l'exécution des jeux de tests, nous avons mis à disposition un 
+script permettant de compiler de lancer le jeu de tests final. Ce script est situé à la racine du 
 projet dans le dossier SqueletteProjet et se nomme script.sh. 
 
 
