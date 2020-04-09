@@ -1,0 +1,28 @@
+### Utilisation de notre compilateur ###
+
+Voici la ligne de commande complète permettant de compiler, exécuter et afficher la
+valeur que retourne un programme (appelé ici Test.c à l'aide de notre compilateur : 
+
+./ifcc Test.c > Test.s; gcc Test.s -o Test; ./Test; echo $?
+
+
+# Premiere compilation vers le code assembleur 
+
+La ligne correspondant à cette action est : ./ifcc Test.c > Test.s 
+Cela permet de compiler notre code source C dans le fichier test en code assembleur 
+dans le fichier Test.s.
+
+
+# Compilation du code assembleur en un exécutable
+
+La ligne correspondant à cette action est : gcc Test.s -o Test
+Le commande GCC génère un fichier exécutable Test à partir du code assembleur du 
+fichier Test.s.
+
+# Exécution de l'éxécutable 
+
+Enfin, nous pouvons exécuter notre programme comme tout autre exécutable : 
+./Test
+Pour afficher la valeur que retourne ce programme, il suffit de faire echo $? .
+
+
