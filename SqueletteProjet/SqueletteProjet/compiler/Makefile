@@ -32,3 +32,4 @@ dirs:
 clean:
 	rm -rf $(OUTPUT)
 	rm -rf $(GENERATED)
+	rm -rf ../tests/pld-test-output/*
